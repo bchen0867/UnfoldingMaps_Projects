@@ -107,7 +107,7 @@ public class AirportMap extends PApplet {
 		if (map.getZoomLevel() < 10) {
 			// Limit max amount of airport displayed to be 10 every 10 latitude intervals
 			
-			limitAirportShown(5);
+			limitAirportShown(50);
 			System.out.println("Zoomed ou to" + map.getZoomLevel());
 		}
 	}
@@ -146,27 +146,29 @@ public class AirportMap extends PApplet {
 		Collections.sort(airports);
 		
 		
-//		// Make a temp list to store airport markers within certain latitude range
-//		ArrayList <AirportMarker> temp = new ArrayList<AirportMarker>();
-//		ArrayList<Integer> indexList = new ArrayList<>();
-//		indexList.add(0);
+		// Make a temp list to store airport markers within certain latitude range
+		ArrayList <AirportMarker> temp = new ArrayList<AirportMarker>();
+		ArrayList<Integer> indexList = new ArrayList<>();
+		indexList.add(0);
 		
-//		for (int i = -90; i < 90;i = i + 10) {
-//			temp.clear();
-//			for (int j = indexList.get(indexList.size()-1); j < airports.size();j++ ) {
-//				if (airports.get(j).getLatitude() < i) {
-//					temp.add(airports.get(j));
-//				} else {
-//					indexList.add(j - 1);
-//					return;
-//				}
-//			}
-//			
-//			// loop over the airport list and hide the first half of the temp list
-//			for (int m = indexList.get(indexList.size()-2); m < indexList.get(indexList.size()-2) + numToShow; m ++ ) {
-//				airports.get(m).setHidden(true);
-//
-//				}
-//			}	
+		for (int i = -90; i < 90;i = i + 10) {
+			temp.clear();
+			for (int j = indexList.get(indexList.size()-1); j < airports.size();j++ ) {
+				if (airports.get(j).getLatitude() < i) {
+					temp.add(airports.get(j));
+				} else {
+					indexList.add(j - 1);
+					return;
+				}
+			}
+			
+			// loop over the airport list and hide the first half of the temp list
+			for (int m = indexList.get(indexList.size()-2); m < indexList.get(indexList.size()-2) + numToShow; m ++ ) {
+				airports.get(m).setHidden(true);
+
+				}
+			}	
 		}
+
+	// the end
 }
