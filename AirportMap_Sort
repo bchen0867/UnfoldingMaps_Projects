@@ -39,6 +39,7 @@ public class AirportMap extends PApplet {
 		// setting up map and default events
 		int spacing = 50;
 		map = new UnfoldingMap(this, spacing, spacing, width-2*spacing, height-2*spacing);
+//		System.out.println("Soopky! Zoomed out to " + map.getZoomLevel());
 		map.zoomAndPanTo(10, new Location(32.881, -117.238)); // zoom to UCSD first for the comfort of eyes
 		
 
@@ -92,31 +93,50 @@ public class AirportMap extends PApplet {
 		
 		//UNCOMMENT IF YOU WANT TO SEE ALL ROUTES
 		// map.addMarkers(routeList);
-		
+		airportList = sortByLat(airportList);
 		map.addMarkers(airportList);
-
+//		printLatitude(airportList, 5); // test if the sort method works
 	}
 	
 	public void draw() {
 		map.draw();
-		
+		displayZoomLevel();
 	}
 	
 	// Restrict the amount of airport markers displaying when the user zooms in or out the map
 	public void mouseWheel() {
-		if (map.getZoomLevel() < 10) {
-			// Limit max amount of airport displayed to be 10 every 10 latitude intervals
-			
-			limitAirportShown(50);
-			System.out.println("Zoomed ou to" + map.getZoomLevel());
+		if (map.getZoomLevel() >= 5) {
+			return;
+		} else if (map.getZoomLevel() < 5 &&  map.getZoomLevel() >= 3) {
+			// Limit max amount of airport displayed
+			limitAirportShown(10, 6);
+//			System.out.println("Zoomed out to " + map.getZoomLevel());
+		} else {
+			// Limit max amount of airport displayed
+			limitAirportShown(10, 30);
+//			System.out.println("Soopky! Zoomed out to " + map.getZoomLevel());
 		}
 	}
 	
-	// a unit test for getAltitude method
-	private void printLatitude(ArrayList<AirportMarker> airports, int numToShow)
+	private void displayZoomLevel() {
+		String displayZoomLevel = "Zoom Level: " + Integer.toString(map.getZoomLevel());
+		fill(255);
+		rect(40, 35, 150, 20);
+		fill(0);
+		text(displayZoomLevel, 50, 50);
+		return;
+	}
+	// a helper method to print out latitude from list of marker
+	private void printLatitude(List <Marker> airportList, int numToShow)
 	{
+		
+		// fix the situation where numToShow is larger than the number of the airportMarkers
+		if (numToShow > airportList.size()) {
+			numToShow = airportList.size();
+		}
+		
 		int i = 0;
-		for (Marker m: airports) {
+		for (Marker m: airportList) {
 			if (i < numToShow) {
 				AirportMarker marker = (AirportMarker) m;
 				System.out.println(marker.getLatitude());
@@ -126,49 +146,82 @@ public class AirportMap extends PApplet {
 			}
 		}
 	}
-		
-	// a unit testing of airport marker's sorting
-	private void limitAirportShown(int numToShow)
-	{
-		// fix the situation where numToShow is larger than the number of the airportMarkers
-		if (numToShow > airportList.size()) {
-			numToShow = airportList.size();
-		}
 	
+	// a sorting method returns to the sorted list of airport markers
+	private List<Marker> sortByLat(List<Marker> list){
 		// make a new array of AirportMarker object and copy markers from airportList to it.
-		ArrayList <AirportMarker> airports = new ArrayList<AirportMarker>();
+		List <AirportMarker> airports = new ArrayList<AirportMarker>();
 		for (Marker m: airportList) {
 			airports.add((AirportMarker)m);
-			m.setHidden(true); // test if can hide all
 		}
 		
 		// Sort the AirportMarker according to its altitudes
 		Collections.sort(airports);
 		
-		
+		// turn the list of airport marker back to list of maker
+		List<Marker> sortedAirportMarker = new ArrayList<>();
+		for (Marker m: airports) {
+			sortedAirportMarker.add((Marker)m);
+		}
+		return sortedAirportMarker;
+	}
+	
+	// a unit testing of airport marker's sorting
+	private void limitAirportShown(int latInterval, int markerInterval)
+	{	
+		// reset all airport
+		hideAll();
+	
 		// Make a temp list to store airport markers within certain latitude range
-		ArrayList <AirportMarker> temp = new ArrayList<AirportMarker>();
-		ArrayList<Integer> indexList = new ArrayList<>();
+		List <Marker> temp = new ArrayList<>();
+		List <Integer> indexList = new ArrayList<>();
 		indexList.add(0);
 		
-		for (int i = -90; i < 90;i = i + 10) {
+		for (int lat = -90; lat < 90; lat = lat + latInterval) {
 			temp.clear();
-			for (int j = indexList.get(indexList.size()-1); j < airports.size();j++ ) {
-				if (airports.get(j).getLatitude() < i) {
-					temp.add(airports.get(j));
+			for (int i = indexList.get(indexList.size()-1); i < airportList.size(); i ++ ) {
+				
+//				System.out.println("the lat interval: " + lat + " - " + (lat+ latInterval));
+//				System.out.println("index i: " + i);
+				
+				if (((AirportMarker) airportList.get(i)).getLatitude() >= lat 
+						&& ((AirportMarker) airportList.get(i)).getLatitude() < lat + latInterval ) {
+					temp.add(airportList.get(i));
 				} else {
-					indexList.add(j - 1);
-					return;
+					indexList.add(i);
+					break;
 				}
+//			System.out.println(indexList);
+//			System.out.println(temp.size());
+//			printLatitude(airportList, 5);
 			}
-			
-			// loop over the airport list and hide the first half of the temp list
-			for (int m = indexList.get(indexList.size()-2); m < indexList.get(indexList.size()-2) + numToShow; m ++ ) {
-				airports.get(m).setHidden(true);
 
+		// loop over the indexList (the list of index of airport maker corresponding to the latitude interval)
+		for (int i = 0; i < indexList.size() - 1; i ++) {
+			int index = indexList.get(i);
+			int listSize = indexList.get(i + 1) - indexList.get(i);
+			
+			// Only show every markerInterval airport Marker
+			for (int j = 0; j < listSize; j = j + markerInterval) {
+				airportList.get(index + j).setHidden(false);
+				}
 				}
 			}	
 		}
-
+	
+	
+	// loop over and unhide all markers
+	private void unhideAll() {
+		for(Marker marker : airportList) {
+			marker.setHidden(false);
+		}
+	}
+	
+	// loop over and hide all markers
+	private void hideAll() {
+		for(Marker marker : airportList) {
+			marker.setHidden(true);
+		}
+	}
 	// the end
 }
