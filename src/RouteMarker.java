@@ -5,6 +5,7 @@ import java.util.List;
 import de.fhpotsdam.unfolding.data.ShapeFeature;
 import de.fhpotsdam.unfolding.marker.SimpleLinesMarker;
 import processing.core.PGraphics;
+import processing.core.PVector;
 
 public class RouteMarker extends SimpleLinesMarker
 {
@@ -20,11 +21,7 @@ public class RouteMarker extends SimpleLinesMarker
 	}
 	public int getStrokeWeight() {
 		return this.strokeWeight;
-	}
-	
-//	public boolean isInside(float x, float y, List vectors) {
-//		return this.isInside(x, y, vectors);
-//	}
+	}	
 	
 	// Getter method for the OpenFlights ID of the source airport for the route
 	public int getSourceID() {
@@ -53,5 +50,9 @@ public class RouteMarker extends SimpleLinesMarker
 			this.setStrokeColor(250);
 		}
 		
+	}
+	
+	public boolean checkForClick(int mouseX, int mouseY, List<PVector> vectors) {
+		return this.isInside(mouseX, mouseY, vectors);
 	}
 }
