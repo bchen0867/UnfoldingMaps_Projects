@@ -346,31 +346,39 @@ public class AirportMap extends PApplet {
 	}
 	
 	
-//	/** select the first route marker is clicked by the mouse*/
-//	private void checkRouteForClick(List<Marker> markers)
-//	{
-//		// Abort if there's already a marker clicked
-//		if (lastClicked != null) {
-//			return;
-//		}
-//		
-//		for (Marker m : markers) 
-//		{
-//			RouteMarker marker = (RouteMarker) m;
-//			float w = marker.getStrokeWeight()/2;
-//			List<PVector> vectors = new ArrayList<>(); 
-//			vectors.add(new PVector (marker.getScreenPosition(map).x, marker.getScreenPosition(map).y - w));
-//			vectors.add(new PVector (marker.getScreenPosition(map).x - w, marker.getScreenPosition(map).y));
-//			vectors.add(new PVector (marker.getScreenPosition(map).x + w, marker.getScreenPosition(map).y));
-//			vectors.add(new PVector (marker.getScreenPosition(map).x, marker.getScreenPosition(map).y + w));
-//			
-//			if (marker.isInside(mouseX, mouseY, vectors)) { // need to change the isInside method to the vector version 
-//				lastClicked = marker;
-//				marker.setClicked(true);
-//				return;
-//			}
-//		}
-//	}
+	/** select the first route marker is clicked by the mouse*/
+	private void checkRouteForClick(List<Marker> markers)
+	{
+		for (Marker m: markers) 
+		{
+			RouteMarker marker = (RouteMarker) m;
+			float w = marker.getStrokeWeight()*20; // increase the weight for test
+			List<ScreenPosition> posList  = marker.getLocations().stream().map(b -> map.getScreenPosition(b)).collect(Collectors.toList());
+
+			float x1 = min(posList.get(0).x, posList.get(1).x);
+			float y1 = min(posList.get(0).y, posList.get(1).y);
+			float x2 = max(posList.get(0).x, posList.get(1).x);
+			float y2 = max(posList.get(0).y, posList.get(1).y);
+
+			List<PVector> vectors = new ArrayList<>(); 
+			vectors.add(new PVector (x1 - w, y1 - w));
+			vectors.add(new PVector (x1 - w, y1 + w));
+			vectors.add(new PVector (x2 + w, y2 + w));
+			vectors.add(new PVector (x2 + w, y2 - w));
+			System.out.println(vectors);
+			
+			pushStyle();
+			stroke(255);
+			
+			if (marker.checkForClick(mouseX, mouseY, vectors)) { // need to change the isInside method to the vector version 
+				lastClicked = marker;
+				marker.setClicked(true);
+				System.out.println("Route Marker clicked");
+				System.out.println(marker.getProperties()); // test for clicking the route
+				return;
+			}
+		}
+	}
 	
 	private void showRoutes() {
 		hideAllRM();
@@ -431,9 +439,8 @@ public class AirportMap extends PApplet {
 	
 	
 	/** The event handler for mouse clicks
-	 * It will display an earthquake and its threat circle of cities
-	 * Or if a city is clicked, it will display all the earthquakes 
-	 * where the city is in the threat circle
+	 * It will display the destination and source airport (ID)
+	 * of the route clicked. 
 	 */
 	@Override
 	public void mouseClicked()
@@ -443,21 +450,9 @@ public class AirportMap extends PApplet {
 			lastClicked.setClicked(false);
 			lastClicked = null;
 		}
-
-		// check airport marker for click with map's getFirstHitMarker method
-		CommonMarker hitMarker = (CommonMarker) map.getFirstHitMarker(mouseX, mouseY);
-		
-	    if (hitMarker != null && airportList.contains(hitMarker)) {
-	        // Select current marker 
-	    	hitMarker.setClicked(true);
-	        lastClicked = hitMarker;
-	        System.out.println("Marker clicked and its in airport list");
-			}
+		checkRouteForClick(showRoutes());
 	}
 
-
-	
-	
 	/**___________End of Event Methods ___________*/
 	
 	
